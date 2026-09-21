@@ -568,6 +568,25 @@ const KEY = "ssml-site-v1";
 /* 관리자 로그인 (Supabase Auth). 로그인 전에는 읽기만 가능합니다. */
 let AUTH = null;
 const authToken = () => (AUTH && AUTH.access_token) ? AUTH.access_token : SUPABASE.anonKey;
+/* 로그인 토큰이 살아 있는지 확인하고, 만료됐으면 조용히 갱신합니다 */
+async function ensureAuth(){
+  if (Store.mode() !== "supabase") return true;
+  if (!AUTH || !AUTH.access_token) return false;
+  const exp = AUTH.expires_at ? AUTH.expires_at * 1000 : 0;
+  if (exp && Date.now() < exp - 60000) return true;
+  if (!AUTH.refresh_token) return false;
+  try{
+    const r = await fetch(`${SUPABASE.url}/auth/v1/token?grant_type=refresh_token`,{
+      method:"POST",
+      headers:{apikey:SUPABASE.anonKey, "Content-Type":"application/json"},
+      body:JSON.stringify({refresh_token:AUTH.refresh_token})
+    });
+    if (!r.ok) return false;
+    AUTH = await r.json();
+    return !!AUTH.access_token;
+  }catch(e){ return false; }
+}
+
 async function signIn(email, password){
   const r = await fetch(`${SUPABASE.url}/auth/v1/token?grant_type=password`,{
     method:"POST",
@@ -610,6 +629,7 @@ const Store = {
   async save(data){
     const m = this.mode();
     if (m === "supabase"){
+      if (!await ensureAuth()) throw new Error("로그인이 만료되었습니다. 다시 로그인해 주세요");
       const r = await fetch(`${SUPABASE.url}/rest/v1/${SUPABASE.table}?id=eq.${SUPABASE.rowId}`,{
         method:"PATCH",
         headers:{apikey:SUPABASE.anonKey,Authorization:`Bearer ${authToken()}`,
@@ -1468,6 +1488,7 @@ function dataUrlToBlob(u){
 /* data: URI 사진 한 장을 저장소에 올리고 공개 주소를 돌려줍니다 */
 async function uploadPhoto(dataUrl){
   if (!canUpload() || !/^data:image\//.test(dataUrl)) return dataUrl;
+  if (!await ensureAuth()) throw new Error("로그인이 만료되었습니다. 다시 로그인한 뒤 진행해 주세요");
   const blob = dataUrlToBlob(dataUrl);
   const ext = (blob.type.split("/")[1] || "webp").replace("jpeg","jpg");
   const name = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}.${ext}`;
@@ -1851,6 +1872,11 @@ document.addEventListener("click", async e => {
   if (t.id === "migrateBtn"){
     const msg = $("#migMsg");
     if (!canUpload()){ msg.className = "upmsg err"; msg.textContent = "저장소가 연결되어 있지 않습니다."; return; }
+    if (!await ensureAuth()){
+      msg.className = "upmsg err";
+      msg.textContent = "로그인이 만료되었습니다. 로그아웃 후 다시 로그인해 주세요.";
+      return;
+    }
     const cache = new Map();
     const walk = async v => {
       if (typeof v === "string"){
