@@ -88,18 +88,18 @@ button{font:inherit;cursor:pointer}
 
 /* ---------- 첫 진입 인트로 ---------- */
 @keyframes heroPhotoIn{
-  0%  {opacity:0;transform:scale(1.082) translate3d(0,0,0)}
-  12% {opacity:1}
+  0%  {opacity:0;transform:scale(1.078) translate3d(0,0,0)}
+  14% {opacity:1}
   100%{opacity:1;transform:scale(1.06) translate3d(0,0,0)}
 }
 @keyframes heroTextIn{
   0%{opacity:0;transform:translateY(9px)}
   100%{opacity:1;transform:translateY(0)}
 }
-body.intro .hero-bg img.photo{animation:heroPhotoIn 12s cubic-bezier(.3,.52,.38,1) both}
-body.intro .hero .eyebrow{animation:heroTextIn 2.2s cubic-bezier(.28,.62,.32,1) .6s both}
-body.intro .hero h1{animation:heroTextIn 2.4s cubic-bezier(.28,.62,.32,1) .95s both}
-body.intro .hero p{animation:heroTextIn 2.4s cubic-bezier(.28,.62,.32,1) 1.3s both}
+body.intro .hero-bg img.photo{animation:heroPhotoIn 7s cubic-bezier(.3,.52,.38,1) both}
+body.intro .hero .eyebrow{animation:heroTextIn 1.3s cubic-bezier(.28,.62,.32,1) .25s both}
+body.intro .hero h1{animation:heroTextIn 1.4s cubic-bezier(.28,.62,.32,1) .45s both}
+body.intro .hero p{animation:heroTextIn 1.4s cubic-bezier(.28,.62,.32,1) .65s both}
 body.intro .hero .eyebrow,body.intro .hero h1,body.intro .hero p{transform-origin:left center}
 
 /* ---------- news band ---------- */
@@ -1796,7 +1796,7 @@ function playIntro(){
   void document.body.offsetWidth;          // 애니메이션 재시작용 리플로우
   document.body.classList.add("intro");
   clearTimeout(introTimer);
-  introTimer = setTimeout(() => document.body.classList.remove("intro"), 12200);
+  introTimer = setTimeout(() => document.body.classList.remove("intro"), 7200);
 }
 
 function route(){
