@@ -1654,7 +1654,8 @@ function openCrop(src, done){
   const close = () => ov.remove();
   ov.querySelector("#cNo").onclick = close;
   ov.addEventListener("click", e => { if (e.target === ov) close(); });
-  ov.querySelector("#cOk").onclick = () => {
+  ov.querySelector("#cOk").onclick = async () => {
+    const okBtn = ov.querySelector("#cOk");
     const s = base * z;
     const sw = Math.min(iw, FW / s), sh = Math.min(ih, FH / s);
     const sx = Math.max(0, Math.min(-ox / s, iw - sw)), sy = Math.max(0, Math.min(-oy / s, ih - sh));
@@ -1665,10 +1666,21 @@ function openCrop(src, done){
     c.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, OW, OH);
     let out = c.toDataURL("image/webp", 0.8);
     if (!out.startsWith("data:image/webp")) out = c.toDataURL("image/jpeg", 0.85);
-    close();
     if (canUpload()){
-      uploadPhoto(out).then(done).catch(() => done(out));
-    } else done(out);
+      okBtn.disabled = true;
+      okBtn.textContent = "올리는 중…";
+      try{ out = await uploadPhoto(out); }
+      catch(err){
+        okBtn.disabled = false;
+        okBtn.textContent = "적용";
+        const tip = ov.querySelector(".tip");
+        tip.style.color = "#B4232A";
+        tip.textContent = "실패: " + err.message;
+        return;
+      }
+    }
+    close();
+    done(out);
   };
 }
 
