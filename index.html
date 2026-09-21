@@ -616,8 +616,12 @@ const Store = {
                  "Content-Type":"application/json",Prefer:"return=minimal"},
         body:JSON.stringify({payload:data})
       });
-      if (r.status === 401 || r.status === 403) throw new Error("권한이 없습니다. 다시 로그인해 주세요");
-      if(!r.ok) throw new Error("supabase " + r.status);
+      if(!r.ok){
+        let why = "";
+        try{ const j = await r.json(); why = j.message || j.error || JSON.stringify(j); }
+        catch(e){ try{ why = await r.text(); }catch(e2){} }
+        throw new Error(`저장 실패 ${r.status} — ${why}${AUTH ? "" : " / 로그인 상태가 아닙니다"}`);
+      }
       return true;
     }
     if (m === "claude"){ await window.storage.set(KEY, JSON.stringify(data)); return true; }
@@ -1473,8 +1477,13 @@ async function uploadPhoto(dataUrl){
              "Content-Type":blob.type, "x-upsert":"true"},
     body:blob
   });
-  if (r.status === 401 || r.status === 403) throw new Error("권한이 없습니다. 다시 로그인해 주세요");
-  if (!r.ok) throw new Error("업로드 실패 (" + r.status + ")");
+  if (!r.ok){
+    let why = "";
+    try{ const j = await r.json(); why = j.message || j.error || JSON.stringify(j); }
+    catch(e){ try{ why = await r.text(); }catch(e2){} }
+    if (!AUTH) why += " / 로그인 상태가 아닙니다";
+    throw new Error(`업로드 실패 ${r.status} — ${why}`);
+  }
   return `${SUPABASE.url}/storage/v1/object/public/${SUPABASE.bucket}/${name}`;
 }
 
