@@ -1495,7 +1495,7 @@ async function uploadPhoto(dataUrl){
   const r = await fetch(`${SUPABASE.url}/storage/v1/object/${SUPABASE.bucket}/${name}`,{
     method:"POST",
     headers:{apikey:SUPABASE.anonKey, Authorization:`Bearer ${authToken()}`,
-             "Content-Type":blob.type, "x-upsert":"true"},
+             "Content-Type":blob.type, "cache-control":"31536000"},
     body:blob
   });
   if (!r.ok){
