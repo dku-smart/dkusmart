@@ -2048,24 +2048,21 @@ if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 window.scrollTo(0, 0);
 
 (async function init(){
-  /* 먼저 파일에 담긴 내용으로 즉시 그립니다 (흰 화면·끊김 방지) */
-  DATA = merge(DEFAULTS, null);
+  /* 저장소 내용을 먼저 기다린 뒤, 화면을 딱 한 번만 그립니다 */
+  let saved = null;
+  try{
+    saved = await Promise.race([
+      Store.load(),
+      new Promise(r => setTimeout(() => r(null), 3000))
+    ]);
+  }catch(e){ saved = null; }
+
+  DATA = merge(DEFAULTS, saved);
   applyChrome();
+  document.body.classList.remove("intro");
   route();
   window.scrollTo(0, 0);
   document.body.classList.add('ready');
-
-  /* 저장소 내용이 도착하면 달라진 경우에만 다시 그립니다 */
-  try{
-    const saved = await Store.load();
-    if (!saved) return;
-    const next = merge(DEFAULTS, saved);
-    if (JSON.stringify(next) === JSON.stringify(DATA)) return;
-    DATA = next;
-    applyChrome();
-    document.body.classList.remove("intro");   // 인트로 애니메이션 다시 재생 방지
-    route();
-  }catch(e){}
 })();
 </script>
 </body>
