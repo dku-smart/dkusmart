@@ -25,6 +25,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arimo:wght@400..700&display=swap">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
+body{opacity:0;transition:opacity .25s ease}
+body.ready{opacity:1}
 :root{
   --ink:#0E1E2B;
   --ink-2:#17323F;
@@ -2051,6 +2053,7 @@ window.scrollTo(0, 0);
   applyChrome();
   route();
   window.scrollTo(0, 0);
+  document.body.classList.add('ready');
 
   /* 저장소 내용이 도착하면 달라진 경우에만 다시 그립니다 */
   try{
